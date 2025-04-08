@@ -29,7 +29,7 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 whatsapp_text = f'{lang['o_whatsapp']} {context.user_data['whatsapp']}\n'
             
             await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
-            await update.effective_chat.send_message(
+            sent_message = await update.effective_chat.send_message(
             lang['order_check'] + '\n\n' +
             f'{lang['o_chosen_bike']} {context.user_data['selected_bike']}\n' +
             f'{lang['o_delivery_date']} {context.user_data['rent_start'].strftime("%d.%m.%y")}\n' +
@@ -40,6 +40,7 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pn_text + whatsapp_text, reply_markup=InlineKeyboardMarkup(create_keyboard(user_id, 'order_info')), disable_web_page_preview=True)
             if g_state['editing']:
                 g_state['editing'] = False
+            g_state['message_id'] = sent_message.message_id
         except Exception as e:
             print(e)
     
@@ -51,14 +52,14 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.effective_chat.send_message(lang['bike_unavailable'])
             return ConversationHandler.END
         context.user_data['state'] = 'ORDER_COMPLETE'
-        return ORDER_COMPLETE
+        await order_complete(update, context)
     
     elif state == 'ORDER_COMPLETE':
         # Send final order details to user and to admin, as well as to the DB
         try:
             order_id = await send_order(context.user_data)
             await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
-            await update.effective_chat.send_message(lang['order_info_head'] + '\n\n' +
+            await context.bot.edit_message_text(chat_id=g_state['chat_id'], message_id=g_state['message_id'], text=lang['order_info_head'] + '\n\n' +
             f'{lang['order_id']} {order_id}\n' +
             f'{lang['o_chosen_bike']} {context.user_data['selected_bike']}\n' +
             f'{lang['o_delivery_date']} {context.user_data['rent_start']}\n' +
@@ -66,7 +67,7 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f'{lang['o_helmets']} {context.user_data['helmets']}/{context.user_data['helmets_kids']}\n' +
             f'{lang['o_address']} {context.user_data['address']}' +
             f'{lang['o_price']} {context.user_data['price']}฿\n\n' +
-            f'{lang['contacts']}')
+            f'{lang['contacts']}', reply_markup=None)
 
             await context.bot.send_message(ADMIN_CHAT,
             f'{translations['ru']['order_id']} {order_id}\n' +

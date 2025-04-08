@@ -7,7 +7,6 @@ from greetings import greetings
 from order import order
 from utils.keyboards import create_keyboard
 from order_complete import order_complete
-import os
 
 async def button_handler(update: Update, context: CallbackContext):
     """

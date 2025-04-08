@@ -100,16 +100,18 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     elif state == 'DATE_RENT_END':
         user_input = update.message.text
 
-        # rent_end can be a number of days or a date in DD.MM.YYYY format
+        # rent_end can be a number of days or a date in DD.MM.YY format
         try:
             if len(user_input.split('.')) == 1:
                 days_of_rent = int(user_input)
-                if days_of_rent < 1:
+                # Min rent period
+                if days_of_rent < 5:
                     await update.message.reply_text(lang['min_rent_error'])
                     return BIKE_SELECTION
                 context.user_data['rent_end'] = context.user_data['rent_start'] + timedelta(days=days_of_rent)
             elif len(user_input.split('.')) == 3:
-                if datetime.strptime(user_input, '%d.%m.%y').date() <= context.user_data['rent_start']:
+                # Min rent period
+                if datetime.strptime(user_input, '%d.%m.%y').date() <= (context.user_data['rent_start'] + timedelta(days=4)):
                     await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
                     await update.message.reply_text(lang['min_rent_error'])
                     return BIKE_SELECTION
