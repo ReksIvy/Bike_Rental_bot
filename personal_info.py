@@ -30,9 +30,9 @@ async def personal_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             
             # Make sure the file name is unique
             chars = string.ascii_letters + string.digits
-            download_path = directory_path / Path(''.join(random.choices(chars, 10)))
+            download_path = directory_path / Path(''.join(random.choices(chars, k=10)))
             while os.path.exists(download_path):
-                download_path = directory_path / Path(''.join(random.choices(chars, 10)))
+                download_path = directory_path / Path(''.join(random.choices(chars, k=10)))
             file_path = await file.download_to_drive(download_path)
             context.user_data['path'] = download_path
 

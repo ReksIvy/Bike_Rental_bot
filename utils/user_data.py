@@ -17,6 +17,6 @@ def load_translations():
     with open("translations.json", 'r', encoding='utf-8') as file:
         return json.load(file)
 
-user_languages = load_user_languages()
+user_languages = {int(k): v for k, v in load_user_languages().items()}
 
 translations = load_translations()

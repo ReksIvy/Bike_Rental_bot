@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
 from telegram.constants import ChatAction
-from utils.user_data import user_languages, translations
+from utils.user_data import user_languages, translations, save_user_languages
 from utils.globals import *
 from greetings import greetings
 from order import order
@@ -20,10 +20,12 @@ async def button_handler(update: Update, context: CallbackContext):
 
     if data == 'en':
         user_languages[query.from_user.id] = 'en'
+        save_user_languages()
         await greetings(update, context)
         return GREETINGS
     elif data == 'ru':
         user_languages[query.from_user.id] = 'ru'
+        save_user_languages()
         await greetings(update, context)
         return GREETINGS
     elif data == 'lang':

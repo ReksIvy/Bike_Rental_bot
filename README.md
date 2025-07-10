@@ -31,7 +31,7 @@ This project is part of my personal portfolio to demonstrate my skills in:
 
 - **Python** — core language
 - **python-telegram-bot** — for building Telegram bot interactions
-- **SQL Express** — to store data (configurable)
+- **PostgreSQL** — to store data (configurable)
 - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) - for image processing
 - **Logging & error handling** — for smooth production use
 

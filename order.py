@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ChatAction
 from DB import get_available_bikes
 from datetime import timedelta, datetime
@@ -8,6 +8,7 @@ from utils.user_data import translations, user_languages
 from utils.keyboards import create_keyboard
 from order_complete import order_complete
 from utils.logger import log
+from utils.fallbacks import cancel
 import logging
 
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -16,21 +17,28 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     state = context.user_data['state']
 
     if state == 'BIKE_LIST':
+        try:
         # Formatted list of available bikes
-        available_bikes = [
-            f"{i+1}. {row[1]}" + f"{' (' + lang['available_until'] + str(row[6]) + ')' if row[6] and row[6] > datetime.now().date() + timedelta(days=1) else ''}" +
-            f"{' (' + lang['available_from'] + str(row[7]) + ')' if row[7] and (not row[6] or row[6] <= datetime.now().date() + timedelta(days=1)) and row[7] > datetime.now().date() else ''}"
-            + f"\n{lang['bike_production']} {row[2]}\n{lang['bike_color']}" +
-            f" {row[3]}\n{lang['bike_price']}\n{lang['bike_price_week']} {row[4]}฿\n{lang['bike_price_month']} {row[5]}฿\n\n"
-        for i, row in enumerate(get_available_bikes())
-        ]
-        if g_state['editing']:
-            await update.callback_query.edit_message_text(lang['bike_list'] + "\n".join(available_bikes) + lang['choose_bike'])
-        else:
-            sent_message = await update.callback_query.edit_message_text(lang['bike_list'] + "\n".join(available_bikes) + lang['choose_bike'],
-                                                        reply_markup=InlineKeyboardMarkup(create_keyboard(user_id, 'return')))
-            g_state['message_id'] = sent_message.message_id
-        context.user_data['state'] = 'BIKE_SELECTION'
+            available_bikes = [
+                f"{i+1}. {row[1]}" + f"{' (' + lang['available_until'] + str(row[6]) + ')' if row[6] and row[6] > datetime.now().date() + timedelta(days=1) else ''}" +
+                f"{' (' + lang['available_from'] + str(row[7]) + ')' if row[7] and (not row[6] or row[6] <= datetime.now().date() + timedelta(days=1)) and row[7] > datetime.now().date() else ''}"
+                + f"\n{lang['bike_production']} {row[2]}\n{lang['bike_color']}" +
+                f" {row[3]}\n{lang['bike_price']}\n{lang['bike_price_week']} {row[4]}฿\n{lang['bike_price_month']} {row[5]}฿\n\n"
+            for i, row in enumerate(get_available_bikes())
+            ]
+            if len(available_bikes) == 0:
+                await update.callback_query.edit_message_text(lang['no_bikes'])
+                return ConversationHandler.END
+            if g_state['editing']:
+                await update.callback_query.edit_message_text(lang['bike_list'] + "\n".join(available_bikes) + lang['choose_bike'])
+            else:
+                sent_message = await update.callback_query.edit_message_text(lang['bike_list'] + "\n".join(available_bikes) + lang['choose_bike'],
+                                                            reply_markup=InlineKeyboardMarkup(create_keyboard(user_id, 'return')))
+                g_state['message_id'] = sent_message.message_id
+            context.user_data['state'] = 'BIKE_SELECTION'
+        except Exception as e:
+            log("log/bot.log", e, 40)
+            await cancel(update, context)
 
     elif state == 'BIKE_SELECTION':
         user_input = update.message.text
@@ -51,8 +59,8 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             bike_data = list(enumerate(get_available_bikes())) # Get a list of available bikes from DB
             # Fill in all bike details
             selected_bike = next((row[1] for index, row in bike_data if index == bike_id - 1), None)
-            context.user_data['available_from'] = next((row[7] for index, row in bike_data if index == bike_id - 1), datetime.now().date())
-            context.user_data['available_until'] = next((row[6] or datetime.max.date() for index, row in bike_data if index == bike_id - 1), datetime(2100, 1, 1).date())
+            context.user_data['available_from'] = next((row[6] or datetime.now().date() for index, row in bike_data if index == bike_id - 1), datetime.now().date())
+            context.user_data['available_until'] = next((row[7] or datetime.max.date() for index, row in bike_data if index == bike_id - 1), datetime(2100, 1, 1).date())
             context.user_data['b_id'] = next((row[0] for index, row in bike_data if index == bike_id - 1), None)
             context.user_data['bike_price_week'] = next((row[4] for index, row in bike_data if index == bike_id - 1), None)
             context.user_data['bike_price_month'] = next((row[5] for index, row in bike_data if index == bike_id - 1), None)
@@ -67,6 +75,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 await update.message.reply_text(lang['bike_error'])
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
+            await cancel(update, context)
             
     
     elif state == 'DATE_RENT_START':
@@ -95,6 +104,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             context.user_data['state'] = 'DATE_RENT_END'
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
+            await cancel(update, context)
             
     
     elif state == 'DATE_RENT_END':
@@ -133,6 +143,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             context.user_data['state'] = 'HELMETS'
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
+            await cancel(update, context)
 
     elif state == 'HELMETS':
         user_input = update.message.text
@@ -148,6 +159,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             context.user_data['state'] = 'HELMETS_KIDS'
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
+            await cancel(update, context)
     
     elif state == 'HELMETS_KIDS':
         user_input = update.message.text
@@ -174,3 +186,4 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             return PERSONAL_INFORMATION
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
+            await cancel(update, context)

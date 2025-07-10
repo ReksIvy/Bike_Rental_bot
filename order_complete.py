@@ -36,7 +36,7 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f'{lang['o_rent_end']} {context.user_data['rent_end'].strftime("%d.%m.%y")}\n' +
             f'{lang['o_helmets']} {context.user_data['helmets']}/{context.user_data['helmets_kids']}\n' +
             f'{lang['o_address']} {context.user_data['address']}\n' +
-            f'{lang['o_price']} {context.user_data['price']}฿\n' +
+            f'{lang['o_price']} {context.user_data['price']}฿ + 1500฿\n' +
             pn_text + whatsapp_text, reply_markup=InlineKeyboardMarkup(create_keyboard(user_id, 'order_info')), disable_web_page_preview=True)
             if g_state['editing']:
                 g_state['editing'] = False
@@ -66,7 +66,7 @@ async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f'{lang['o_rent_end']} {context.user_data['rent_end']}\n' +
             f'{lang['o_helmets']} {context.user_data['helmets']}/{context.user_data['helmets_kids']}\n' +
             f'{lang['o_address']} {context.user_data['address']}' +
-            f'{lang['o_price']} {context.user_data['price']}฿\n\n' +
+            f'{lang['o_price']} {context.user_data['price']}฿ + 1500฿\n\n' +
             f'{lang['contacts']}', reply_markup=None)
 
             await context.bot.send_message(ADMIN_CHAT,
