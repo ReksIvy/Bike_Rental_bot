@@ -1,12 +1,12 @@
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ChatAction
-from utils.user_data import translations, user_languages
-from utils.globals import *
-from utils.keyboards import create_keyboard
-from utils.logger import log
+from src.utils.user_data import translations, user_languages
+from src.utils.globals import *
+from src.utils.keyboards import create_keyboard
+from src.utils.logger import log
 import logging
-from DB import get_available_bikes, send_order
+from src.utils.DB import get_available_bikes, send_order
 
 async def order_complete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_chat.id

@@ -1,12 +1,12 @@
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ContextTypes, ConversationHandler
 from telegram.constants import ChatAction
-from utils.user_data import user_languages, translations, save_user_languages
-from utils.globals import *
-from greetings import greetings
-from order import order
-from utils.keyboards import create_keyboard
-from order_complete import order_complete
+from src.utils.user_data import user_languages, translations, save_user_languages
+from src.utils.globals import *
+from src.greetings import greetings
+from src.order import order
+from src.utils.keyboards import create_keyboard
+from src.order_complete import order_complete
 
 async def button_handler(update: Update, context: CallbackContext):
     """

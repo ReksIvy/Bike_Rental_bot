@@ -4,12 +4,12 @@ from telegram.constants import ChatAction
 import readmrz
 import os
 import cv2
-from utils.globals import *
-from utils.user_data import user_languages, translations
-from utils.keyboards import create_keyboard
-from order_complete import order_complete
+from src.utils.globals import *
+from src.utils.user_data import user_languages, translations
+from src.utils.keyboards import create_keyboard
+from src.order_complete import order_complete
 from pathlib import Path
-from utils.logger import log
+from src.utils.logger import log
 import logging
 import random
 import string
@@ -56,8 +56,11 @@ async def personal_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             log("log/bot.log", e, logging.ERROR)
             await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
             await update.message.reply_text(lang['passport_error'])
-            #if os.path.exists('C:\\Users\\kisel\\Desktop\\Telegram_bot\\' + context.user_data['path']):
-            #    os.remove('C:\\Users\\kisel\\Desktop\\Telegram_bot\\' + context.user_data['path'])
+            try:
+                if 'path' in context.user_data and os.path.exists(context.user_data['path']):
+                    os.remove(context.user_data['path'])
+            finally:
+                pass
     
     elif state == 'ADDRESS_OPTIONAL':
         # Address can be any string

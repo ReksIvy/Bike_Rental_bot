@@ -1,14 +1,14 @@
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ChatAction
-from DB import get_available_bikes
+from src.utils.DB import get_available_bikes
 from datetime import timedelta, datetime
-from utils.globals import *
-from utils.user_data import translations, user_languages
-from utils.keyboards import create_keyboard
-from order_complete import order_complete
-from utils.logger import log
-from utils.fallbacks import cancel
+from src.utils.globals import *
+from src.utils.user_data import translations, user_languages
+from src.utils.keyboards import create_keyboard
+from src.order_complete import order_complete
+from src.utils.logger import log
+from src.utils.fallbacks import cancel
 import logging
 
 async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -20,8 +20,8 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         try:
         # Formatted list of available bikes
             available_bikes = [
-                f"{i+1}. {row[1]}" + f"{' (' + lang['available_until'] + str(row[6]) + ')' if row[6] and row[6] > datetime.now().date() + timedelta(days=1) else ''}" +
-                f"{' (' + lang['available_from'] + str(row[7]) + ')' if row[7] and (not row[6] or row[6] <= datetime.now().date() + timedelta(days=1)) and row[7] > datetime.now().date() else ''}"
+                f"{i+1}. {row[1]}" + f"{' (' + lang['available_until'] + str(row[7].strftime('%d.%m')) + ')' if row[7] and row[7] > datetime.now().date() + timedelta(days=5) else ''}" +
+                f"{' (' + lang['available_from'] + str(row[6].strftime('%d.%m')) + ')' if row[6] and (not row[7] or row[7] <= datetime.now().date() + timedelta(days=5)) and row[6] > datetime.now().date() else ''}"
                 + f"\n{lang['bike_production']} {row[2]}\n{lang['bike_color']}" +
                 f" {row[3]}\n{lang['bike_price']}\n{lang['bike_price_week']} {row[4]}฿\n{lang['bike_price_month']} {row[5]}฿\n\n"
             for i, row in enumerate(get_available_bikes())
@@ -59,8 +59,8 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             bike_data = list(enumerate(get_available_bikes())) # Get a list of available bikes from DB
             # Fill in all bike details
             selected_bike = next((row[1] for index, row in bike_data if index == bike_id - 1), None)
-            context.user_data['available_from'] = next((row[6] or datetime.now().date() for index, row in bike_data if index == bike_id - 1), datetime.now().date())
-            context.user_data['available_until'] = next((row[7] or datetime.max.date() for index, row in bike_data if index == bike_id - 1), datetime(2100, 1, 1).date())
+            context.user_data['available_from'] = next((row[6] if row[6] and row[6] > datetime.now().date() else datetime.now().date() for index, row in bike_data if index == bike_id - 1), datetime.now().date())
+            context.user_data['available_until'] = next(((row[7] if row[7] and row[7] > datetime.now().date() else datetime.max.date()) for index, row in bike_data if index == bike_id - 1), datetime(2100, 1, 1).date())
             context.user_data['b_id'] = next((row[0] for index, row in bike_data if index == bike_id - 1), None)
             context.user_data['bike_price_week'] = next((row[4] for index, row in bike_data if index == bike_id - 1), None)
             context.user_data['bike_price_month'] = next((row[5] for index, row in bike_data if index == bike_id - 1), None)

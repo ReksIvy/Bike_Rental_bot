@@ -1,6 +1,6 @@
 import psycopg2
-from utils.globals import g_state, CONN
-from utils.logger import log
+from src.utils.globals import g_state, CONN
+from src.utils.logger import log
 import os
 
 def get_available_bikes():
@@ -11,6 +11,7 @@ def get_available_bikes():
         try:
             cursor.execute("select * from available_bikes")
             bike_rows = cursor.fetchall()
+            CONN.commit()
             return bike_rows
         except Exception as e:
             log("log/DB.log", e, 40)
@@ -70,6 +71,7 @@ async def is_new_user(username: str):
             result = cursor.fetchone()
 
             if result:
+                CONN.commit()
                 g_state['exists'] = True
                 pass_num, fullname, thai_pn, whatsapp = result
                 return pass_num, fullname, thai_pn, whatsapp

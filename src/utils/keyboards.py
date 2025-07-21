@@ -1,5 +1,5 @@
 from telegram import InlineKeyboardButton
-from utils.user_data import user_languages, translations
+from src.utils.user_data import user_languages, translations
 
 
 def create_keyboard(id: int, type: str):

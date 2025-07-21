@@ -1,9 +1,9 @@
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram.constants import ChatAction
-from utils.user_data import translations, user_languages
-from utils.globals import *
-from utils.keyboards import create_keyboard
+from src.utils.user_data import translations, user_languages
+from src.utils.globals import *
+from src.utils.keyboards import create_keyboard
 
 async def greetings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_chat.id

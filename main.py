@@ -1,17 +1,17 @@
 from telegram import Update, BotCommand, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, ContextTypes, ConversationHandler,  CallbackQueryHandler
 from telegram.constants import ChatAction
-from utils.user_data import user_languages
-from bot_handlers import button_handler
-from utils.fallbacks import cancel
-from utils.globals import *
-from utils.logger import log
-from greetings import greetings
-from order import order
-from personal_info import personal_info
-from utils.keyboards import create_keyboard
-from order_complete import order_complete
-from DB import is_new_user
+from src.utils.user_data import user_languages
+from src.utils.bot_handlers import button_handler
+from src.utils.fallbacks import cancel
+from src.utils.globals import *
+from src.utils.logger import log
+from src.greetings import greetings
+from src.order import order
+from src.personal_info import personal_info
+from src.utils.keyboards import create_keyboard
+from src.order_complete import order_complete
+from src.utils.DB import is_new_user
 
 COMMANDS = [
     BotCommand("start", "Start the bot"),
@@ -27,7 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         context.user_data['pass_num'], context.user_data['fullname'], context.user_data['pn'], context.user_data['whatsapp'] = await is_new_user(username)
         user_id = update.message.from_user.id
         # Check if the user has a preferred language
-        if not user_languages[user_id]:
+        if user_id not in user_languages.keys():
             await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
             await update.message.reply_text(
             'Добро пожаловать в Bike Rental Group. С помощью данного бота вы сможете легко забронировать байк.' +
@@ -56,7 +56,6 @@ if __name__ == "__main__":
             ORDER_COMPLETE: [MessageHandler(filters.TEXT & ~filters.COMMAND, order_complete), CallbackQueryHandler(button_handler)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
-        allow_reentry=True
     )
 
     app.add_handler(conversation_handler)
