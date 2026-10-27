@@ -1,0 +1,12 @@
+Bike Rental accounting 2025.xlsx
+credentials.json
+*.jpg
+!passport_example.jpg
+*.pyc
+globals.py
+log
+*.sql
+.env
+user_languages.json
+bot.egg-info
+__pycache__
