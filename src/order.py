@@ -182,7 +182,7 @@ async def order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 return PERSONAL_INFORMATION
             context.user_data['state'] = 'PASSPORT_SCAN'
             await context.bot.send_chat_action(g_state['chat_id'], ChatAction.TYPING)
-            await update.message.reply_text(lang['passport'])
+            await update.message.reply_photo(photo="passport_example.jpg",caption=lang['passport'], show_caption_above_media=True)
             return PERSONAL_INFORMATION
         except Exception as e:
             log("log/bot.log", e, logging.ERROR)
